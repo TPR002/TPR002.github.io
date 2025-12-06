@@ -3,107 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BlackpopHub</title>
-
+<title>BlackpopHub - Login</title>
 <style>
-    body {
-        font-family: sans-serif;
-        background: #121212;
-        color: white;
-        padding: 20px;
-        margin: 0;
-    }
-
-    h2 {
-        text-align: center;
-        font-size: 32px;
-        margin-bottom: 25px;
-    }
-
-    /* กล่องจัดกลาง */
-    .box {
-        background: #1e1e1e;
-        padding: 15px;
-        margin: 0 auto 25px auto; 
-        width: 90%;
-        max-width: 700px;
-        border-radius: 12px;
-        border: 1px solid #333;
-        box-shadow: 0px 0px 10px #00000050;
-    }
-
-    h3 {
-        margin-left: 5px;
-    }
-
-    textarea {
-        width: 100%;
-        height: 100px;
-        padding: 10px;
-        border-radius: 8px;
-        border: none;
-        resize: none;
-        background: #111;
-        color: #eee;
-        font-size: 14px;
-    }
-
-    /* ปุ่มคัดลอก */
-    button {
-        margin-top: 10px;
-        padding: 12px 20px;
-        background: #ff003c;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 15px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    button:hover {
-        background: #2563eb;
-    }
-
-    .msg {
-        color: #8bf48a;
-        display: none;
-        margin-top: 8px;
-        text-align: center;
-    }
+body { font-family: sans-serif; background: #121212; color: white; padding: 20px; margin: 0; }
+h2 { text-align: center; font-size: 32px; margin-bottom: 25px; }
+input { padding:8px; margin:5px; border-radius:5px; border:none; }
+button { margin-top:10px; padding:10px 15px; background:#ff003c; color:white; border:none; border-radius:5px; cursor:pointer;}
+button:hover { background:#2563eb; }
+a { color: #00f; cursor:pointer; display:block; margin-top:5px; }
+.box { background: #1e1e1e; padding: 15px; margin: 0 auto 25px auto; width: 90%; max-width:700px; border-radius:12px; border:1px solid #333; box-shadow:0 0 10px #00000050; }
+textarea { width:100%; height:100px; padding:10px; border-radius:8px; border:none; resize:none; background:#111; color:#eee; font-size:14px; }
+.msg { color: #8bf48a; display:none; margin-top:8px; text-align:center; }
+#logout { display:none; margin-top:10px; }
 </style>
-
-<script>
-function copyFrom(id) {
-    const ta = document.getElementById(id);
-    const text = ta.value;
-
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => showMsg(id));
-    } else {
-        const temp = document.createElement("textarea");
-        temp.value = text;
-        document.body.appendChild(temp);
-        temp.select();
-        document.execCommand("copy");
-        temp.remove();
-        showMsg(id);
-    }
-}
-
-function showMsg(id) {
-    const msg = document.getElementById(id + "-msg");
-    msg.style.display = "block";
-    setTimeout(() => msg.style.display = "none", 1500);
-}
-</script>
-
 </head>
-
 <body>
 
+<div id="login-container" class="box">
+    <h2>Login</h2>
+    <input type="text" id="login-username" placeholder="Username"><br>
+    <input type="password" id="login-password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+    <a onclick="showRegister()">สมัครสมาชิก</a>
+    <p id="login-msg" style="color:red;"></p>
+</div>
+
+<div id="register-container" class="box" style="display:none;">
+    <h2>สมัครสมาชิก</h2>
+    <input type="text" id="reg-username" placeholder="Username"><br>
+    <input type="password" id="reg-password" placeholder="Password"><br>
+    <button onclick="register()">สมัคร</button>
+    <a onclick="showLogin()">ไปหน้า Login</a>
+    <p id="reg-msg" style="color:red;"></p>
+</div>
+
+<div id="script-container" style="display:none;">
 <h2>Script Roblox</h2>
 
 <!-- ช่อง 1 -->
@@ -113,9 +47,7 @@ function showMsg(id) {
 -- สร้างโดยคนไทย
 -- คัดลอกไปวางใช้ได้เลย
 --BlackpopHub
-
 loadstring(game:HttpGet(("https://raw.githubusercontent.com/TPR002/BPHub/main/Script/BPS.lua"), true))()
-
 --รหัส 7952
 -- ข้อควรระวัง
 -- รีตัวเมนูอาจหาย
@@ -139,9 +71,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/TPR002/BPHub/main/Scr
     <h3>Script 99 คืน เมนูภาษาไทย</h3>
     <textarea id="text3">
 -- ไม่ต้องแปลภาษานะครับ คัดลอกเลยย
-
 loadstring(game:HttpGet("https://raw.githubusercontent.com/TPR002/BPHub/main/Script/Thai_99-Day.lua"))()
-
 -- ใช้อย่างระมัดระวัง!!
     </textarea>
     <button onclick="copyFrom('text3')">📋 คัดลอก</button>
@@ -168,6 +98,67 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/TPR002/BPHub/main/Sc
     <button onclick="copyFrom('text5')">📋 คัดลอก</button>
     <div id="text5-msg" class="msg">✔ คัดลอกแล้ว!</div>
 </div>
+
+<button id="logout" onclick="logout()">Logout</button>
+</div>
+
+<script>
+function showRegister(){
+    document.getElementById('login-container').style.display='none';
+    document.getElementById('register-container').style.display='block';
+    document.getElementById('login-msg').innerText='';
+}
+function showLogin(){
+    document.getElementById('login-container').style.display='block';
+    document.getElementById('register-container').style.display='none';
+    document.getElementById('reg-msg').innerText='';
+}
+function register(){
+    const u = document.getElementById('reg-username').value.trim();
+    const p = document.getElementById('reg-password').value.trim();
+    if(!u || !p){ document.getElementById('reg-msg').innerText='กรุณากรอกข้อมูลให้ครบ'; return; }
+    if(localStorage.getItem(u)){ document.getElementById('reg-msg').innerText='Username มีอยู่แล้ว'; return; }
+    localStorage.setItem(u, p);
+    document.getElementById('reg-msg').style.color='green';
+    document.getElementById('reg-msg').innerText='สมัครเรียบร้อย! ไป Login';
+    setTimeout(showLogin,1000);
+}
+function login(){
+    const u = document.getElementById('login-username').value.trim();
+    const p = document.getElementById('login-password').value.trim();
+    const stored = localStorage.getItem(u);
+    if(stored && stored===p){
+        document.getElementById('login-container').style.display='none';
+        document.getElementById('register-container').style.display='none';
+        document.getElementById('script-container').style.display='block';
+        document.getElementById('logout').style.display='block';
+    } else {
+        document.getElementById('login-msg').innerText='Username หรือ Password ไม่ถูกต้อง';
+    }
+}
+function logout(){
+    document.getElementById('script-container').style.display='none';
+    document.getElementById('logout').style.display='none';
+    showLogin();
+}
+
+// ฟังก์ชันคัดลอก
+function copyFrom(id){
+    const ta = document.getElementById(id);
+    const text = ta.value;
+    if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>showMsg(id)); }
+    else{
+        const temp = document.createElement("textarea");
+        temp.value=text; document.body.appendChild(temp); temp.select();
+        document.execCommand("copy"); temp.remove(); showMsg(id);
+    }
+}
+function showMsg(id){
+    const msg = document.getElementById(id+'-msg');
+    msg.style.display='block';
+    setTimeout(()=>msg.style.display='none',1500);
+}
+</script>
 
 </body>
 </html>
