@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BlackpopHub</title>
+<title>BlackpopHub - รหัสยืนยัน</title>
 <style>
 body { font-family: sans-serif; background: #121212; color: white; padding: 20px; margin: 0; }
 h2 { text-align: center; font-size: 32px; margin-bottom: 25px; }
@@ -14,11 +14,13 @@ a { color: #00f; cursor:pointer; display:block; margin-top:5px; }
 .box { background: #1e1e1e; padding: 15px; margin: 0 auto 25px auto; width: 90%; max-width:700px; border-radius:12px; border:1px solid #333; box-shadow:0 0 10px #00000050; }
 textarea { width:100%; height:100px; padding:10px; border-radius:8px; border:none; resize:none; background:#111; color:#eee; font-size:14px; }
 .msg { color: #8bf48a; display:none; margin-top:8px; text-align:center; }
-#logout { display:none; margin-top:10px; }
+#logout { display:none; width:100%; padding:15px 0; background:#ff6600; font-size:18px; border-radius:8px; cursor:pointer; transition:0.3s;}
+#logout:hover { background:#ff3300; transform: scale(1.05);}
 </style>
 </head>
 <body>
 
+<!-- Login -->
 <div id="login-container" class="box">
     <h2>Login</h2>
     <input type="text" id="login-username" placeholder="Username"><br>
@@ -28,6 +30,7 @@ textarea { width:100%; height:100px; padding:10px; border-radius:8px; border:non
     <p id="login-msg" style="color:red;"></p>
 </div>
 
+<!-- Register -->
 <div id="register-container" class="box" style="display:none;">
     <h2>สมัครสมาชิก</h2>
     <input type="text" id="reg-username" placeholder="Username"><br>
@@ -37,6 +40,16 @@ textarea { width:100%; height:100px; padding:10px; border-radius:8px; border:non
     <p id="reg-msg" style="color:red;"></p>
 </div>
 
+<!-- Verify -->
+<div id="verify-container" class="box" style="display:none;">
+    <h2>กรอกรหัสยืนยัน</h2>
+    <p>รหัสยืนยันถูกสร้างขึ้น</p>
+    <input type="number" id="verify-input" placeholder="กรอกรหัสยืนยัน"><br>
+    <button onclick="verifyCode()">ยืนยัน</button>
+    <p id="verify-msg" style="color:red;"></p>
+</div>
+
+<!-- Scripts -->
 <div id="script-container" style="display:none;">
 <h2>Script Roblox</h2>
 
@@ -107,61 +120,88 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/TPR002/BPHub/main/Sc
 </div>
 
 <script>
-function showRegister(){
-    document.getElementById('login-container').style.display='none';
-    document.getElementById('register-container').style.display='block';
-    document.getElementById('login-msg').innerText='';
+// ====== IP + Login Persist ======
+let tempCode = null;
+let tempUser = null;
+
+async function fetchIP() {
+    try {
+        let res = await fetch("https://api.ipify.org?format=json");
+        let data = await res.json();
+        localStorage.setItem("user_ip", data.ip);
+        return data.ip;
+    } catch(e){
+        console.log("ไม่สามารถดึง IP ได้");
+        return null;
+    }
 }
-function showLogin(){
-    document.getElementById('login-container').style.display='block';
-    document.getElementById('register-container').style.display='none';
-    document.getElementById('reg-msg').innerText='';
+
+// ตรวจสอบว่ามีผู้ใช้ล็อกอินอยู่
+window.onload = async function(){
+    await fetchIP();
+    const loggedUser = localStorage.getItem("logged_in_user");
+    if(loggedUser){
+        showScript();
+    }
 }
+
+// Show/Hide
+function showRegister(){ document.getElementById('login-container').style.display='none'; document.getElementById('register-container').style.display='block'; document.getElementById('login-msg').innerText=''; }
+function showLogin(){ document.getElementById('login-container').style.display='block'; document.getElementById('register-container').style.display='none'; document.getElementById('verify-container').style.display='none'; document.getElementById('reg-msg').innerText=''; }
+function showScript(){ document.getElementById('login-container').style.display='none'; document.getElementById('register-container').style.display='none'; document.getElementById('verify-container').style.display='none'; document.getElementById('script-container').style.display='block'; document.getElementById('logout').style.display='block'; }
+
+// Register & Verify
 function register(){
     const u = document.getElementById('reg-username').value.trim();
     const p = document.getElementById('reg-password').value.trim();
-    if(!u || !p){ document.getElementById('reg-msg').innerText='กรุณากรอกข้อมูลให้ครบ'; return; }
+    if(!u||!p){ document.getElementById('reg-msg').innerText='กรุณากรอกข้อมูลให้ครบ'; return; }
     if(localStorage.getItem(u)){ document.getElementById('reg-msg').innerText='Username มีอยู่แล้ว'; return; }
-    localStorage.setItem(u, p);
-    document.getElementById('reg-msg').style.color='green';
-    document.getElementById('reg-msg').innerText='สมัครเรียบร้อย! ไป Login';
-    setTimeout(showLogin,1000);
+    tempCode = Math.floor(100000 + Math.random()*900000);
+    alert('รหัสยืนยันของคุณคือ: ' + tempCode);
+    tempUser = {username:u,password:p};
+    document.getElementById('register-container').style.display='none';
+    document.getElementById('verify-container').style.display='block';
 }
+function verifyCode(){
+    const input = document.getElementById('verify-input').value.trim();
+    if(input==tempCode){
+        localStorage.setItem(tempUser.username, JSON.stringify({password:tempUser.password}));
+        alert('สมัครสมาชิกเรียบร้อย!');
+        tempCode=null; tempUser=null;
+        showLogin();
+    } else { document.getElementById('verify-msg').innerText='รหัสยืนยันไม่ถูกต้อง'; }
+}
+
+// Login & Logout
 function login(){
-    const u = document.getElementById('login-username').value.trim();
-    const p = document.getElementById('login-password').value.trim();
+    const u=document.getElementById('login-username').value.trim();
+    const p=document.getElementById('login-password').value.trim();
     const stored = localStorage.getItem(u);
-    if(stored && stored===p){
-        document.getElementById('login-container').style.display='none';
-        document.getElementById('register-container').style.display='none';
-        document.getElementById('script-container').style.display='block';
-        document.getElementById('logout').style.display='block';
-    } else {
-        document.getElementById('login-msg').innerText='Username หรือ Password ไม่ถูกต้อง';
+    if(stored){
+        const user = JSON.parse(stored);
+        if(user.password===p){
+            localStorage.setItem("logged_in_user", u); // จำผู้ใช้
+            showScript();
+            return;
+        }
     }
+    document.getElementById('login-msg').innerText='Username หรือ Password ไม่ถูกต้อง';
 }
 function logout(){
+    localStorage.removeItem("logged_in_user");
     document.getElementById('script-container').style.display='none';
     document.getElementById('logout').style.display='none';
     showLogin();
 }
 
-// ฟังก์ชันคัดลอก
+// Copy Script
 function copyFrom(id){
-    const ta = document.getElementById(id);
-    const text = ta.value;
+    const ta=document.getElementById(id);
+    const text=ta.value;
     if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>showMsg(id)); }
-    else{
-        const temp = document.createElement("textarea");
-        temp.value=text; document.body.appendChild(temp); temp.select();
-        document.execCommand("copy"); temp.remove(); showMsg(id);
-    }
+    else{ const temp=document.createElement("textarea"); temp.value=text; document.body.appendChild(temp); temp.select(); document.execCommand("copy"); temp.remove(); showMsg(id); }
 }
-function showMsg(id){
-    const msg = document.getElementById(id+'-msg');
-    msg.style.display='block';
-    setTimeout(()=>msg.style.display='none',1500);
-}
+function showMsg(id){ const msg=document.getElementById(id+'-msg'); msg.style.display='block'; setTimeout(()=>msg.style.display='none',1500);}
 </script>
 
 </body>
