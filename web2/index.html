@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiniSpin – Roblox Pastel Wheel</title>
+
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #f6f5ff;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+
+    h1 {
+        color: #6c63ff;
+        margin-top: 30px;
+    }
+
+    .box {
+        background: white;
+        width: 90%;
+        max-width: 400px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 18px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    input {
+        width: 90%;
+        padding: 12px;
+        margin-top: 10px;
+        border-radius: 10px;
+        border: 2px solid #dcdcff;
+    }
+
+    button {
+        width: 90%;
+        padding: 12px;
+        margin-top: 15px;
+        background: #a6a1ff;
+        border: none;
+        color: white;
+        font-size: 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    button:hover { background:#8d88ff; }
+
+    #wheel {
+        margin: 20px auto;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        border: 10px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        background: conic-gradient(
+            #ffd3e2 0deg 60deg,
+            #c8e7ff 60deg 120deg,
+            #ffe6c4 120deg 180deg,
+            #d7ffd4 180deg 240deg,
+            #e8d4ff 240deg 300deg,
+            #fffacb 300deg 360deg
+        );
+        transition: transform 5s ease-out;
+    }
+
+    .admin-box { background:#fff2ff; }
+
+</style>
+</head>
+<body>
+
+<h1>🎡 MiniSpin Roblox</h1>
+
+<div id="loginBox" class="box">
+    <h2>เข้าสู่ระบบ</h2>
+    <input id="loginUser" placeholder="ชื่อผู้ใช้">
+    <input id="loginPass" placeholder="รหัสผ่าน" type="password">
+    <button onclick="login()">เข้าสู่ระบบ</button>
+    <button onclick="showRegister()">สมัครบัญชี</button>
+</div>
+
+<div id="registerBox" class="box" style="display:none;">
+    <h2>สมัครสมาชิก</h2>
+    <input id="regUser" placeholder="ชื่อผู้ใช้">
+    <input id="regPass" placeholder="รหัสผ่าน" type="password">
+    <button onclick="register()">สมัครเลย</button>
+    <button onclick="hideRegister()">ย้อนกลับ</button>
+</div>
+
+<div id="wheelBox" class="box" style="display:none;">
+    <h2>สุ่มวงล้อ</h2>
+    <div id="wheel"></div>
+    <button onclick="spin()">หมุนวงล้อ!</button>
+    <p id="result"></p>
+    <button onclick="logout()">ออกจากระบบ</button>
+</div>
+
+<div id="adminBox" class="box admin-box" style="display:none;">
+    <h2>⚙️ Admin Panel</h2>
+    <p>ปรับโอกาส (รวม 100%)</p>
+
+    <div id="adminInputs"></div>
+
+    <button onclick="saveRates()">บันทึกโอกาส</button>
+    <button onclick="logout()">ออกจากระบบ</button>
+</div>
+
+
+<script>
+// ====================== USERS SYSTEM ======================
+
+let users = JSON.parse(localStorage.getItem("users") || "{}");
+
+// Default admin
+if (!users["admin"]) {
+    users["admin"] = { password: "admin123", admin: true };
+    localStorage.setItem("users", JSON.stringify(users));
+}
+
+function login() {
+    let u = loginUser.value;
+    let p = loginPass.value;
+
+    if (!users[u] || users[u].password !== p) {
+        alert("ชื่อผู้ใช้หรือรหัสผ่านผิด");
+        return;
+    }
+
+    localStorage.setItem("currentUser", u);
+    showApp();
+}
+
+function register() {
+    let u = regUser.value;
+    let p = regPass.value;
+
+    if (users[u]) {
+        alert("มีชื่อผู้ใช้นี้แล้ว");
+        return;
+    }
+
+    users[u] = { password: p, admin: false };
+    localStorage.setItem("users", JSON.stringify(users));
+    alert("สมัครสำเร็จ! เข้าสู่ระบบได้เลย");
+    hideRegister();
+}
+
+function logout() {
+    localStorage.removeItem("currentUser");
+    location.reload();
+}
+
+function showRegister() {
+    loginBox.style.display = "none";
+    registerBox.style.display = "block";
+}
+function hideRegister() {
+    registerBox.style.display = "none";
+    loginBox.style.display = "block";
+}
+
+// ====================== WHEEL SYSTEM ======================
+
+let items = [
+    { name: "💎 20 Gems", rate: 20 },
+    { name: "⭐ 50 Coins", rate: 20 },
+    { name: "🔥 Boost x2", rate: 20 },
+    { name: "🎁 Random Gift", rate: 20 },
+    { name: "💰 100 Coins", rate: 10 },
+    { name: "🎉 Jackpot!", rate: 10 }
+];
+
+function spin() {
+    let wheel = document.getElementById("wheel");
+    let total = items.reduce((a,b)=>a + b.rate, 0);
+    let r = Math.random() * total;
+
+    let acc = 0;
+    let selected;
+
+    for (let i = 0; i < items.length; i++) {
+        acc += items[i].rate;
+        if (r <= acc) {
+            selected = items[i];
+            break;
+        }
+    }
+
+    // หมุนสุ่มแบบสวย
+    let rotate = 3600 + Math.random() * 360;
+    wheel.style.transform = `rotate(${rotate}deg)`;
+
+    setTimeout(() => {
+        result.innerHTML = "คุณได้รับ: <b>" + selected.name + "</b>";
+    }, 5000);
+}
+
+// ====================== ADMIN PANEL ======================
+
+function showAdmin() {
+    adminInputs.innerHTML = "";
+    items.forEach((it, i) => {
+        adminInputs.innerHTML += `
+            <p>${it.name}</p>
+            <input id="rate_${i}" type="number" value="${it.rate}" style="width:100px;">
+        `;
+    });
+}
+
+function saveRates() {
+    let total = 0;
+    items.forEach((it,i)=>{
+        let r = Number(document.getElementById("rate_"+i).value);
+        items[i].rate = r;
+        total += r;
+    });
+
+    if (total !== 100) {
+        alert("ผลรวมต้อง = 100%");
+        return;
+    }
+
+    alert("บันทึกสำเร็จ");
+}
+
+function showApp() {
+    let u = localStorage.getItem("currentUser");
+    if (!u) return;
+
+    loginBox.style.display = "none";
+
+    if (users[u].admin) {
+        adminBox.style.display = "block";
+        showAdmin();
+    } else {
+        wheelBox.style.display = "block";
+    }
+}
+
+showApp();
+
+</script>
+
+</body>
+</html>
